@@ -21,16 +21,31 @@ import com.mparticle.identity.MParticleUser;
 import com.mparticle.identity.TaskFailureListener;
 import com.mparticle.identity.TaskSuccessListener;
 import com.mparticle.identity.BaseIdentityTask;
+import com.mparticle.AttributionListener;
+import com.mparticle.AttributionResult;
+import com.mparticle.kits.AppsFlyerKit;
+import com.mparticle.AttributionError;
+import com.appsflyer.AppsFlyerConversionListener;
+
+import android.net.Uri;
+import com.appboy.support.AppboyLogger;
+import com.appsflyer.AppsFlyerLib;
+import androidx.annotation.NonNull;
+import org.json.JSONObject;
+//import com.appboy.AppboyLifecycleCallbackListener;
 
 
 public class MainActivity extends AppCompatActivity {
+
+    //private AttributionListener myListener;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //registerActivityLifecycleCallbacks(new AppboyLifecycleCallbackListener(true, true));
 
-        //AppboyLogger.setLogLevel(Log.VERBOSE);
+        AppboyLogger.setLogLevel(Log.VERBOSE);
         //configureAppboyAtRuntime();
         //registerActivityLifecycleCallbacks(new AppboyLifecycleCallbackListener());
 
@@ -69,30 +84,47 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
+
+        // DEEPLINKING
+
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        Uri data = intent.getData();
+
+        //AppsFlyerLib.getInstance().sendDeepLinkData(this);
+
+
+
+        AttributionListener myListener = new AttributionListener() {
+            @Override
+            public void onResult(@NonNull AttributionResult attributionResult) {
+                Log.d("blim-mparticle"," onResult = $attributionResult");
+                if (attributionResult.getServiceProviderId() == MParticle.ServiceProviders.APPSFLYER) {
+                    JSONObject attributionParams = attributionResult.getParameters();
+                    if (attributionParams != null && attributionParams.has(AppsFlyerKit.INSTALL_CONVERSION_RESULT)) {
+                        Log.d("Conversion result", attributionParams.toString());
+                    } else if (attributionParams != null && attributionParams.has(AppsFlyerKit.APP_OPEN_ATTRIBUTION_RESULT)) {
+                        Log.d("App open result", attributionParams.toString());
+                    }
+                }
+            }
+
+            @Override
+            public void onError(@NonNull AttributionError attributionError) {
+                Log.d("Attribution Data Error", attributionError.toString());
+            }
+        };
+
+
         MParticleOptions options = MParticleOptions.builder(this)
-                .credentials("APPKEY", "SECRETKEY")
+                .credentials("APPKEY", "APPSECRET")
                 .environment(MParticle.Environment.Development)
                 //.identify(identityRequest)
                 .logLevel(MParticle.LogLevel.VERBOSE)
+                .attributionListener(myListener)
                 .build();
         MParticle.start(options);
 
     }
 
-//    private void refreshFeed {
-//        if (MParticle.getInstance().isKitActive(ServiceProviders.APPBOY)) {
-//            Appboy.getInstance(this).requestFeedRefresh();
-//        }
-//    }
-//
-
 }
-
-//public class ExampleReceiver extends BroadcastReceiver {
-//    @Override
-//    public void onReceive(Context context, Intent intent) {
-//        //process the Intent/send to other receivers as desired, and
-//        //send the Context and Intent into mParticle's BroadcastReceiver
-//        new com.mparticle.ReferrerReceiver().onReceive(context, intent);
-//    }
-//}

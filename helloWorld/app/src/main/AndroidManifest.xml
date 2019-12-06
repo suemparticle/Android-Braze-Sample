@@ -18,6 +18,23 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- DEEPLINKING -->
+<!--            <intent-filter android:label="sueapp">-->
+<!--                <action android:name="android.intent.action.VIEW" />-->
+<!--                <category android:name="android.intent.category.DEFAULT" />-->
+<!--                <category android:name="android.intent.category.BROWSABLE" />-->
+<!--                &lt;!&ndash; Accepts URIs that begin with "sueapp://home” &ndash;&gt;-->
+<!--                <data android:scheme="sueapp"-->
+<!--                    android:host="home" />-->
+<!--            </intent-filter>-->
+            <intent-filter  android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https"
+                    android:host="sueapp.onelink.me"
+                    android:pathPrefix="/eATT" />
+            </intent-filter>
         </activity>
 
         <receiver android:name="com.mparticle.ReferrerReceiver" android:exported="true">
@@ -25,6 +42,12 @@
                 <action android:name="com.android.vending.INSTALL_REFERRER"/>
             </intent-filter>
         </receiver>
+
+        <service android:name="com.appboy.AppboyFirebaseMessagingService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
 
     </application>
 

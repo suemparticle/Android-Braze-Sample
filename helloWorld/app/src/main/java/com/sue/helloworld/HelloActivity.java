@@ -12,6 +12,7 @@ import android.widget.TextView;
 import android.webkit.WebView;
 import android.webkit.WebSettings;
 import android.webkit.WebViewClient;
+import android.util.Log;
 
 import com.mparticle.MParticle;
 import com.mparticle.MParticleOptions;
@@ -31,18 +32,25 @@ import com.mparticle.messaging.MPMessagingAPI;
 import com.mparticle.messaging.ProviderCloudMessage;
 import com.mparticle.segmentation.SegmentListener;
 
+import com.appboy.Appboy;
+import androidx.fragment.app.FragmentActivity;
+//import com.appboy.AppboyLifecycleCallbackListener;
+import com.google.firebase.iid.FirebaseInstanceId;
+
 import android.content.Context;
 
 public class HelloActivity extends AppCompatActivity {
 
     private Context mApplicationContext;
     private WebView myWebView;
+    private static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hello);
 
+        //registerActivityLifecycleCallbacks(new AppboyLifecycleCallbackListener(true, true));
 
 
 
@@ -74,7 +82,8 @@ public class HelloActivity extends AppCompatActivity {
                         .customAttributes(customAttributes)
                         .build();
 
-                MParticle.getInstance().logEvent(event);
+                //MParticle.getInstance().logEvent(event);
+                //MParticle.sharedInstance().logCommerceEvent();
 
                 TextView tv = (TextView)findViewById(R.id.status);
                 tv.setText("Tracked Event");
@@ -110,6 +119,9 @@ public class HelloActivity extends AppCompatActivity {
                 TextView tv = (TextView)findViewById(R.id.status);
                 tv.setText("Sent Push");
 
+
+
+                // WEBVIEW
                 final WebView myWebView = (WebView) findViewById(R.id.webview);
                 myWebView.loadUrl("https://www.sueyoungchung.com");
 
@@ -128,6 +140,22 @@ public class HelloActivity extends AppCompatActivity {
         });
 
 
+        // PUSH
+        MParticle.getInstance().logPushRegistration("TOKEN", "709599249964");
+
+        // Firebase tokens cannot be obtained on the main thread.
+        final Context applicationContext = this;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String token = FirebaseInstanceId.getInstance().getToken("709599249964", "FCM");
+                    Appboy.getInstance(applicationContext).registerAppboyPushMessages(token);
+                } catch (Exception e) {
+                    Log.e(TAG, "Exception while registering Firebase token with Braze.", e);
+                }
+            }
+        }).start();
 
 
         }

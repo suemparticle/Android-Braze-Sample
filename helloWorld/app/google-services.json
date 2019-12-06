@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "709599249964",
+    "firebase_url": "https://android-sample-9512c.firebaseio.com",
+    "project_id": "android-sample-9512c",
+    "storage_bucket": "android-sample-9512c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:709599249964:android:beb7dc41f9a906d6547389",
+        "android_client_info": {
+          "package_name": "com.sue.helloworld"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "709599249964-vujpkte0t1nuh66krlpqopj7ndnbjnun.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDpH3maNWmaO0OnJMYKBTmgSpY5b_VEfxs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "709599249964-vujpkte0t1nuh66krlpqopj7ndnbjnun.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
