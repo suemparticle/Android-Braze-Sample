@@ -16,7 +16,6 @@ import com.mparticle.identity.IdentityApi;
 import com.mparticle.identity.IdentityApiRequest;
 import com.mparticle.identity.IdentityApiResult;
 import com.mparticle.identity.IdentityHttpResponse;
-import com.mparticle.identity.IdentityStateListener;
 import com.mparticle.identity.MParticleUser;
 import com.mparticle.identity.TaskFailureListener;
 import com.mparticle.identity.TaskSuccessListener;
@@ -25,29 +24,19 @@ import com.mparticle.AttributionListener;
 import com.mparticle.AttributionResult;
 import com.mparticle.kits.AppsFlyerKit;
 import com.mparticle.AttributionError;
-import com.appsflyer.AppsFlyerConversionListener;
 
 import android.net.Uri;
 import com.appboy.support.AppboyLogger;
 import com.appsflyer.AppsFlyerLib;
 import androidx.annotation.NonNull;
 import org.json.JSONObject;
-//import com.appboy.AppboyLifecycleCallbackListener;
-
 
 public class MainActivity extends AppCompatActivity {
-
-    //private AttributionListener myListener;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //registerActivityLifecycleCallbacks(new AppboyLifecycleCallbackListener(true, true));
-
-        AppboyLogger.setLogLevel(Log.VERBOSE);
-        //configureAppboyAtRuntime();
-        //registerActivityLifecycleCallbacks(new AppboyLifecycleCallbackListener());
 
         final EditText et=(EditText)findViewById(R.id.email);
         final EditText tv=(EditText)findViewById(R.id.username);
@@ -55,18 +44,26 @@ public class MainActivity extends AppCompatActivity {
         Button loginButton = findViewById(R.id.loginButton);
         loginButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                System.out.println("Button Clicked");
+                System.out.println("Logged In");
 
                 Intent activity2Intent = new Intent(getApplicationContext(), HelloActivity.class);
                 startActivity(activity2Intent);
 
-                IdentityApiRequest identityRequest = IdentityApiRequest.withEmptyUser()
-                        //the IdentityApiRequest provides several convenience methods for common identity types
-                        .email(et.getText().toString())
-                        .customerId(tv.getText().toString())
-                        .build();
-                MParticle.getInstance().Identity().login(identityRequest);
-
+                if(et.getText().toString().matches("") || tv.getText().toString().matches("")){
+                    IdentityApiRequest identityRequest = IdentityApiRequest.withEmptyUser()
+                            //the IdentityApiRequest provides several convenience methods for common identity types
+                            .email("example@example.com")
+                            .customerId("example")
+                            .build();
+                    MParticle.getInstance().Identity().login(identityRequest);
+                } else {
+                    IdentityApiRequest identityRequest = IdentityApiRequest.withEmptyUser()
+                            //the IdentityApiRequest provides several convenience methods for common identity types
+                            .email(et.getText().toString())
+                            .customerId(tv.getText().toString())
+                            .build();
+                    MParticle.getInstance().Identity().login(identityRequest);
+                }
             }
 
         });
@@ -84,21 +81,11 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-
-        // DEEPLINKING
-
-        Intent intent = getIntent();
-        String action = intent.getAction();
-        Uri data = intent.getData();
-
-        //AppsFlyerLib.getInstance().sendDeepLinkData(this);
-
-
-
+        //Appsflyer kit attribution listener
         AttributionListener myListener = new AttributionListener() {
             @Override
             public void onResult(@NonNull AttributionResult attributionResult) {
-                Log.d("blim-mparticle"," onResult = $attributionResult");
+                Log.d("mparticle-attr"," onResult = $attributionResult");
                 if (attributionResult.getServiceProviderId() == MParticle.ServiceProviders.APPSFLYER) {
                     JSONObject attributionParams = attributionResult.getParameters();
                     if (attributionParams != null && attributionParams.has(AppsFlyerKit.INSTALL_CONVERSION_RESULT)) {
@@ -115,11 +102,12 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
+        //Braze Verbose Logging
+        //AppboyLogger.setLogLevel(Log.VERBOSE);
 
         MParticleOptions options = MParticleOptions.builder(this)
                 .credentials("APPKEY", "APPSECRET")
                 .environment(MParticle.Environment.Development)
-                //.identify(identityRequest)
                 .logLevel(MParticle.LogLevel.VERBOSE)
                 .attributionListener(myListener)
                 .build();

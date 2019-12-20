@@ -21,20 +21,13 @@ import com.mparticle.identity.MParticleUser;
 import com.mparticle.internal.MPUtility;
 import com.mparticle.MPEvent;
 import com.mparticle.MParticle.EventType;
-import com.mparticle.commerce.Cart;
+import com.mparticle.commerce.Product;
 import com.mparticle.commerce.CommerceApi;
 import com.mparticle.commerce.CommerceEvent;
-import com.mparticle.commerce.Product;
-
-import com.mparticle.media.MPMediaAPI;
-import com.mparticle.media.MediaCallbacks;
-import com.mparticle.messaging.MPMessagingAPI;
-import com.mparticle.messaging.ProviderCloudMessage;
-import com.mparticle.segmentation.SegmentListener;
+import com.mparticle.commerce.TransactionAttributes;
 
 import com.appboy.Appboy;
 import androidx.fragment.app.FragmentActivity;
-//import com.appboy.AppboyLifecycleCallbackListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 
 import android.content.Context;
@@ -45,14 +38,11 @@ public class HelloActivity extends AppCompatActivity {
     private WebView myWebView;
     private static final String TAG = "MainActivity";
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hello);
-
-        //registerActivityLifecycleCallbacks(new AppboyLifecycleCallbackListener(true, true));
-
-
 
         Button logoutButton = findViewById(R.id.logoutButton);
         logoutButton.setOnClickListener(new View.OnClickListener() {
@@ -66,24 +56,23 @@ public class HelloActivity extends AppCompatActivity {
             }
         });
 
+        //Tracking events
         Button trackEvent = findViewById(R.id.trackEvent);
         trackEvent.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                System.out.println("bought iPhone");
+                System.out.println("Event tracked");
 
                 // Note: may return null if the SDK has yet to acquire a user via IDSync!
                 MParticleUser currentUser = MParticle.getInstance().Identity().getCurrentUser();
 
                 Map<String, String> customAttributes = new HashMap<String, String>();
-                customAttributes.put("color", "rose gold");
-                customAttributes.put("storage", "64GB");
+                customAttributes.put("eventAttribute", "eventValue");
 
-                MPEvent event = new MPEvent.Builder("Purchased iPhone", EventType.Navigation)
+                MPEvent event = new MPEvent.Builder("EventB", EventType.Navigation)
                         .customAttributes(customAttributes)
                         .build();
 
-                //MParticle.getInstance().logEvent(event);
-                //MParticle.sharedInstance().logCommerceEvent();
+                MParticle.getInstance().logEvent(event);
 
                 TextView tv = (TextView)findViewById(R.id.status);
                 tv.setText("Tracked Event");
@@ -91,6 +80,37 @@ public class HelloActivity extends AppCompatActivity {
             }
         });
 
+        //Track purchases
+        Button purchase = findViewById(R.id.purchaseButton);
+        purchase.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                System.out.println("Purchased item");
+
+                // Note: may return null if the SDK has yet to acquire a user via IDSync!
+                MParticleUser currentUser = MParticle.getInstance().Identity().getCurrentUser();
+
+                // 1. Create the products
+                Product product = new Product.Builder("ProductX", "sku-567", 100.00)
+                        .quantity(4.0)
+                        .build();
+
+                // 2. Summarize the transaction
+                TransactionAttributes attributes = new TransactionAttributes("transaction-5678")
+                        .setRevenue(430.00)
+                        .setTax(30.00);
+
+                // 3. Log the purchase event
+                CommerceEvent event = new CommerceEvent.Builder(Product.PURCHASE, product)
+                        .transactionAttributes(attributes)
+                        .build();
+                MParticle.getInstance().logEvent(event);
+
+                TextView tv = (TextView)findViewById(R.id.status);
+                tv.setText("Purchased Item");
+            }
+        });
+
+        //Set user attribute
         Button setAttribute = findViewById(R.id.setAttribute);
         setAttribute.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -100,14 +120,14 @@ public class HelloActivity extends AppCompatActivity {
                 MParticleUser currentUser = MParticle.getInstance().Identity().getCurrentUser();
 
                 // Set user attributes associated with the user
-                currentUser.setUserAttribute("$City","New York");
+                currentUser.setUserAttribute("$City","Chicago");
 
                 TextView tv = (TextView)findViewById(R.id.status);
                 tv.setText("Set User Attribute");
             }
         });
 
-
+        //Send push with Braze
         Button sendPush = findViewById(R.id.sendPush);
         sendPush.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -119,31 +139,17 @@ public class HelloActivity extends AppCompatActivity {
                 TextView tv = (TextView)findViewById(R.id.status);
                 tv.setText("Sent Push");
 
+                MPEvent event = new MPEvent.Builder("pushTrigger", EventType.Navigation)
+                        .build();
 
-
-                // WEBVIEW
-                final WebView myWebView = (WebView) findViewById(R.id.webview);
-                myWebView.loadUrl("https://www.sueyoungchung.com");
-
-                WebSettings webSettings = myWebView.getSettings();
-                myWebView.setWebViewClient(new WebViewClient());
-                webSettings.setJavaScriptEnabled(true);
-
-                myWebView.setWebViewClient(new WebViewClient(){
-                    public void onPageFinished(WebView view, String weburl){
-                        myWebView.loadUrl("javascript:testconsole()");
-                    }
-                });
-
+                MParticle.getInstance().logEvent(event);
 
             }
         });
 
 
-        // PUSH
-        MParticle.getInstance().logPushRegistration("TOKEN", "709599249964");
 
-        // Firebase tokens cannot be obtained on the main thread.
+        // Firebase push tokens cannot be obtained on the main thread.
         final Context applicationContext = this;
         new Thread(new Runnable() {
             @Override
