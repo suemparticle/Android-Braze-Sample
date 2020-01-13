@@ -127,6 +127,8 @@ public class HelloActivity extends AppCompatActivity {
             }
         });
 
+        MParticle.getInstance().Messaging().enablePushNotifications("709599249964");
+
         //Send push with Braze
         Button sendPush = findViewById(R.id.sendPush);
         sendPush.setOnClickListener(new View.OnClickListener() {
@@ -141,6 +143,10 @@ public class HelloActivity extends AppCompatActivity {
 
                 MPEvent event = new MPEvent.Builder("pushTrigger", EventType.Navigation)
                         .build();
+
+                MParticle.getInstance().logEvent(event);
+                
+                MParticle.getInstance().Messaging().displayPushNotificationByDefault(true);
 
                 MParticle.getInstance().logEvent(event);
 
