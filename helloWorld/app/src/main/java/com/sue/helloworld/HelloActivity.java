@@ -1,6 +1,10 @@
 package com.sue.helloworld;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.webkit.ConsoleMessage;
+import android.webkit.JavascriptInterface;
+import android.webkit.WebChromeClient;
 import android.widget.Button;
 import android.content.Intent;
 import android.view.View;
@@ -12,6 +16,8 @@ import android.widget.TextView;
 import android.webkit.WebView;
 import android.webkit.WebSettings;
 import android.webkit.WebViewClient;
+import android.webkit.JavascriptInterface;
+import android.os.Bundle;
 import android.util.Log;
 
 import com.mparticle.MParticle;
@@ -22,7 +28,6 @@ import com.mparticle.internal.MPUtility;
 import com.mparticle.MPEvent;
 import com.mparticle.MParticle.EventType;
 import com.mparticle.commerce.Product;
-import com.mparticle.commerce.CommerceApi;
 import com.mparticle.commerce.CommerceEvent;
 import com.mparticle.commerce.TransactionAttributes;
 
@@ -153,6 +158,43 @@ public class HelloActivity extends AppCompatActivity {
             }
         });
 
+        //Webview
+        Button openWeb = findViewById(R.id.openWeb);
+        openWeb.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                System.out.println("opened webview");
+
+                MParticleUser user = MParticle.getInstance().Identity().getCurrentUser();
+
+                // WEBVIEW
+                final WebView myWebView = (WebView) findViewById(R.id.webview);
+                myWebView.addJavascriptInterface(new message(), "Show");
+
+                WebSettings webSettings = myWebView.getSettings();
+                webSettings.setJavaScriptEnabled(true);
+                MParticle.getInstance().registerWebView(myWebView);
+                myWebView.setWebViewClient(new WebViewClient());
+
+                myWebView.loadUrl("YOURURL");
+
+                myWebView.setWebChromeClient(new WebChromeClient() {
+                    @Override
+                    public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+                        Log.d("MYWEBVIEWLOGS", consoleMessage.message() + " -- From line "
+                                + consoleMessage.lineNumber() + " of "
+                                + consoleMessage.sourceId());
+                        return super.onConsoleMessage(consoleMessage);
+                    }
+                });
+            }
+
+            class message {
+                @JavascriptInterface
+                public String msg() {
+                    return "Hello World!!";
+                }
+            }
+        });
 
 
         // Firebase push tokens cannot be obtained on the main thread.
